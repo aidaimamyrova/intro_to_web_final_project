@@ -22,7 +22,7 @@ Many small gyms still track members using spreadsheets or paper records, which m
 
 ---
 
-## 🏗 Architecture Overview
+## Architecture Overview
 
 ```
 Browser (Client)
@@ -83,7 +83,7 @@ gym_membership_system/
 
 ---
 
-## ⚙Setup & Run Instructions
+## Setup & Run Instructions
 
 ### 1. Clone the repository
 ```bash
@@ -125,7 +125,7 @@ http://127.0.0.1:5000
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ```sql
 users    (id, username, password, role)

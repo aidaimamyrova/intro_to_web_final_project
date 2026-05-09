@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ member.full_name }} — IronCore GMS{% endblock %}
+{% block page_title %}Member Profile{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+
+  <!-- Profile Card -->
+  <div class="card profile-card">
+    <div class="profile-avatar">{{ member.full_name[0].upper() }}</div>
+    <h2 class="profile-name">{{ member.full_name }}</h2>
+    <span class="badge badge-{{ 'success' if member.status == 'active' else 'danger' }} badge-lg">
+      {{ member.status.upper() }}
+    </span>
+    <div class="profile-meta">
+      <div class="meta-row"><span class="meta-label">EMAIL</span><span class="mono">{{ member.email }}</span></div>
+      <div class="meta-row"><span class="meta-label">PHONE</span><span>{{ member.phone or '—' }}</span></div>
+      <div class="meta-row"><span class="meta-label">PLAN</span><span class="badge badge-plan">{{ member.plan_name or '—' }}</span></div>
+      <div class="meta-row"><span class="meta-label">JOINED</span><span class="mono">{{ member.join_date }}</span></div>
+      <div class="meta-row">
+        <span class="meta-label">EXPIRES</span>
+        <span class="mono {% if member.expiry_date < today %}text-danger{% endif %}">{{ member.expiry_date }}</span>
+      </div>
+      {% if member.notes %}
+      <div class="meta-row"><span class="meta-label">NOTES</span><span class="text-muted">{{ member.notes }}</span></div>
+      {% endif %}
+    </div>
+    <div class="profile-actions">
+      <a href="{{ url_for('edit_member', member_id=member.id) }}" class="btn btn-secondary btn-full">Edit Profile</a>
+      <form method="POST" action="{{ url_for('delete_member', member_id=member.id) }}"
+            onsubmit="return confirm('Delete {{ member.full_name }}? This cannot be undone.')">
+        <button class="btn btn-danger btn-full" type="submit">Delete Member</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="profile-right">
+
+    <!-- Renew Membership -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">RENEW MEMBERSHIP</span>
+      </div>
+      <form method="POST" action="{{ url_for('renew_member', member_id=member.id) }}" class="renew-form">
+        <select class="form-input" name="plan_id">
+          {% for p in plans %}
+          <option value="{{ p.id }}" {% if p.id == member.plan_id %}selected{% endif %}>
+            {{ p.name }} — ${{ p.price }}
+          </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Renew →</button>
+      </form>
+    </div>
+
+    <!-- Check-in History -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">CHECK-IN HISTORY</span>
+        <span class="card-badge">Last 20</span>
+      </div>
+      {% if checkins %}
+      <div class="checkin-feed">
+        {% for c in checkins %}
+        <div class="checkin-item">
+          <span class="checkin-dot"></span>
+          <span class="checkin-name mono">{{ c.checkin_at[:10] }}</span>
+          <span class="checkin-time mono">{{ c.checkin_at[11:16] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-state">No check-ins recorded.</p>
+      {% endif %}
+    </div>
+
+    <!-- Payment History -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">PAYMENT HISTORY</span>
+      </div>
+      {% if payments %}
+      <table class="table">
+        <thead><tr><th>Date</th><th>Plan</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td class="mono">{{ p.payment_date }}</td>
+            <td>{{ p.plan_name or '—' }}</td>
+            <td class="mono text-green">${{ "%.2f"|format(p.amount) }}</td>
+            <td><span class="badge badge-success">{{ p.status.upper() }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="empty-state">No payments recorded.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const today = "{{ today if today is defined else '' }}";
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Members — IronCore GMS{% endblock %}
+{% block page_title %}Members{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <form class="search-bar" method="GET">
+    <input class="form-input search-input" type="text" name="q" value="{{ search }}" placeholder="Search name, email, phone…">
+    <select class="form-input select-sm" name="status">
+      <option value="">All Status</option>
+      <option value="active"   {% if status=='active' %}selected{% endif %}>Active</option>
+      <option value="inactive" {% if status=='inactive' %}selected{% endif %}>Inactive</option>
+      <option value="expired"  {% if status=='expired' %}selected{% endif %}>Expired</option>
+    </select>
+    <select class="form-input select-sm" name="plan">
+      <option value="">All Plans</option>
+      {% for p in plans %}
+      <option value="{{ p.id }}" {% if plan_filter == p.id|string %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-secondary" type="submit">Filter</button>
+    <a href="{{ url_for('members') }}" class="btn btn-ghost">Reset</a>
+  </form>
+  <a href="{{ url_for('add_member') }}" class="btn btn-primary">+ Add Member</a>
+</div>
+
+<div class="card">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Plan</th>
+        <th>Expires</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in members %}
+      <tr>
+        <td class="mono text-muted">#{{ m.id }}</td>
+        <td><strong>{{ m.full_name }}</strong></td>
+        <td class="text-muted">{{ m.email }}</td>
+        <td class="text-muted">{{ m.phone or '—' }}</td>
+        <td><span class="badge badge-plan">{{ m.plan_name or '—' }}</span></td>
+        <td class="mono {% if m.expiry_date < today %}text-danger{% endif %}">{{ m.expiry_date }}</td>
+        <td>
+          <span class="badge badge-{{ 'success' if m.computed_status == 'active' else ('danger' if m.computed_status == 'expired' else 'muted') }}">
+            {{ m.computed_status.upper() }}
+          </span>
+        </td>
+        <td class="actions-cell">
+          <a href="{{ url_for('member_detail', member_id=m.id) }}" class="btn btn-xs btn-ghost">View</a>
+          <a href="{{ url_for('edit_member', member_id=m.id) }}" class="btn btn-xs btn-secondary">Edit</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="empty-state">No members found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="table-footer">
+  <span class="text-muted">{{ members|length }} member(s) found</span>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const today = "{{ today if today is defined else '' }}";
+</script>
+{% endblock %}

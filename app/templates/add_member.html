@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Add Member — IronCore GMS{% endblock %}
+{% block page_title %}Add Member{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="card form-card">
+    <div class="card-header">
+      <span class="card-title">NEW MEMBER REGISTRATION</span>
+    </div>
+    <form method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">FULL NAME *</label>
+          <input class="form-input" type="text" name="full_name" required placeholder="John Doe">
+        </div>
+        <div class="form-group">
+          <label class="form-label">EMAIL *</label>
+          <input class="form-input" type="email" name="email" required placeholder="john@example.com">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">PHONE</label>
+          <input class="form-input" type="tel" name="phone" placeholder="+1 555 000 0000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">MEMBERSHIP PLAN *</label>
+          <select class="form-input" name="plan_id" required>
+            {% for p in plans %}
+            <option value="{{ p.id }}">{{ p.name }} — ${{ p.price }} / {{ p.duration_days }}d</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOTES</label>
+        <textarea class="form-input" name="notes" rows="3" placeholder="Any special notes…"></textarea>
+      </div>
+      <div class="form-actions">
+        <a href="{{ url_for('members') }}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">Register Member</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — IronCore GMS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card accent-green">
+    <div class="stat-icon">◈</div>
+    <div class="stat-value">{{ total_members }}</div>
+    <div class="stat-label">TOTAL MEMBERS</div>
+  </div>
+  <div class="stat-card accent-blue">
+    <div class="stat-icon">◉</div>
+    <div class="stat-value">{{ active_members }}</div>
+    <div class="stat-label">ACTIVE</div>
+  </div>
+  <div class="stat-card accent-orange">
+    <div class="stat-icon">⚠</div>
+    <div class="stat-value">{{ expired_members }}</div>
+    <div class="stat-label">EXPIRED</div>
+  </div>
+  <div class="stat-card accent-yellow">
+    <div class="stat-icon">◉</div>
+    <div class="stat-value">{{ today_checkins }}</div>
+    <div class="stat-label">TODAY'S CHECK-INS</div>
+  </div>
+  <div class="stat-card accent-purple">
+    <div class="stat-icon">$</div>
+    <div class="stat-value">${{ "%.0f"|format(month_revenue) }}</div>
+    <div class="stat-label">MONTHLY REVENUE</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <!-- Revenue Chart -->
+  <div class="card card-wide">
+    <div class="card-header">
+      <span class="card-title">MONTHLY REVENUE</span>
+      <span class="card-badge">Last 6 Months</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Plan Distribution -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">PLAN DISTRIBUTION</span>
+    </div>
+    <div class="plan-dist-list">
+      {% set max_count = plan_dist|map(attribute='cnt')|max if plan_dist else 1 %}
+      {% for row in plan_dist %}
+      <div class="plan-dist-row">
+        <span class="plan-dist-name">{{ row.name }}</span>
+        <div class="plan-dist-bar-wrap">
+          <div class="plan-dist-bar" style="width: {{ (row.cnt / (max_count if max_count > 0 else 1) * 100)|int }}%"></div>
+        </div>
+        <span class="plan-dist-count">{{ row.cnt }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recent Members -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">RECENT MEMBERS</span>
+      <a href="{{ url_for('members') }}" class="card-link">View All →</a>
+    </div>
+    <table class="table">
+      <thead>
+        <tr><th>Name</th><th>Plan</th><th>Expires</th></tr>
+      </thead>
+      <tbody>
+        {% for m in recent_members %}
+        <tr onclick="window.location='{{ url_for('member_detail', member_id=m.id) }}'" class="clickable-row">
+          <td><strong>{{ m.full_name }}</strong></td>
+          <td><span class="badge badge-plan">{{ m.plan_name or '—' }}</span></td>
+          <td class="mono {% if m.expiry_date < today %}text-danger{% endif %}">{{ m.expiry_date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Today's Check-ins -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">TODAY'S CHECK-INS</span>
+      <a href="{{ url_for('checkins') }}" class="card-link">View All →</a>
+    </div>
+    {% if recent_checkins %}
+    <div class="checkin-feed">
+      {% for c in recent_checkins %}
+      <div class="checkin-item">
+        <span class="checkin-dot"></span>
+        <span class="checkin-name">{{ c.full_name }}</span>
+        <span class="checkin-time mono">{{ c.checkin_at[11:16] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">No check-ins yet today.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const revenueData = {{ revenue_data | tojson }};
+const labels = revenueData.map(r => r.month);
+const values = revenueData.map(r => r.total || 0);
+drawBarChart('revenueChart', labels, values);
+</script>
+{% endblock %}

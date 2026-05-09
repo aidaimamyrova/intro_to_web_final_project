@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Payments — IronCore GMS{% endblock %}
+{% block page_title %}Payment Records{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">ALL TRANSACTIONS</span>
+    <span class="card-badge">Total: ${{ "%.2f"|format(total) }}</span>
+  </div>
+  <table class="table table-hover">
+    <thead>
+      <tr><th>#</th><th>Member</th><th>Plan</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td class="mono text-muted">#{{ p.id }}</td>
+        <td>
+          <a href="{{ url_for('member_detail', member_id=p.member_id) }}" class="link">{{ p.full_name }}</a>
+        </td>
+        <td><span class="badge badge-plan">{{ p.plan_name or '—' }}</span></td>
+        <td class="mono text-green">${{ "%.2f"|format(p.amount) }}</td>
+        <td class="mono">{{ p.payment_date }}</td>
+        <td><span class="badge badge-success">{{ p.status.upper() }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty-state">No payments recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

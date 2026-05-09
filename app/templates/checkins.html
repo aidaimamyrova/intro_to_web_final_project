@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Check-ins — IronCore GMS{% endblock %}
+{% block page_title %}Check-ins{% endblock %}
+
+{% block content %}
+<div class="checkin-layout">
+
+  <!-- Quick Check-in Panel -->
+  <div class="card checkin-panel">
+    <div class="card-header">
+      <span class="card-title">QUICK CHECK-IN</span>
+    </div>
+    <form method="POST" action="{{ url_for('log_checkin') }}" class="checkin-form">
+      <p class="form-hint">Enter member ID or email address</p>
+      <div class="checkin-input-row">
+        <input class="form-input" type="text" name="identifier" placeholder="Member ID or Email…"
+               id="checkin-identifier" autocomplete="off" required>
+        <button type="submit" class="btn btn-primary btn-checkin">CHECK IN ⚡</button>
+      </div>
+      <!-- Autocomplete dropdown -->
+      <div class="autocomplete-results" id="autocomplete-results"></div>
+    </form>
+
+    <div class="checkin-stat">
+      <span class="stat-value" id="checkin-count">{{ checkins|length }}</span>
+      <span class="stat-label">CHECK-INS TODAY</span>
+    </div>
+  </div>
+
+  <!-- Log Table -->
+  <div class="card card-wide">
+    <div class="card-header">
+      <span class="card-title">CHECK-IN LOG</span>
+      <form method="GET" class="date-filter-form">
+        <input class="form-input input-sm" type="date" name="date" value="{{ date_filter }}"
+               onchange="this.form.submit()">
+      </form>
+    </div>
+    <table class="table table-hover">
+      <thead>
+        <tr><th>#</th><th>Member</th><th>Plan</th><th>Time</th></tr>
+      </thead>
+      <tbody>
+        {% for c in checkins %}
+        <tr>
+          <td class="mono text-muted">{{ loop.index }}</td>
+          <td>
+            <a href="{{ url_for('member_detail', member_id=c.member_id) }}" class="link">{{ c.full_name }}</a>
+          </td>
+          <td><span class="badge badge-plan">{{ c.plan_name or '—' }}</span></td>
+          <td class="mono">{{ c.checkin_at[11:16] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="empty-state">No check-ins on {{ date_filter }}.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Live autocomplete for check-in search
+const input  = document.getElementById('checkin-identifier');
+const results= document.getElementById('autocomplete-results');
+let debounce;
+
+input.addEventListener('input', () => {
+  clearTimeout(debounce);
+  const q = input.value.trim();
+  if (q.length < 2) { results.innerHTML=''; return; }
+  debounce = setTimeout(async () => {
+    const res = await fetch(`/api/member-search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    results.innerHTML = data.map(m =>
+      `<div class="autocomplete-item" onclick="selectMember('${m.email}','${m.full_name}')">
+        <strong>${m.full_name}</strong> <span class="text-muted">${m.email}</span>
+       </div>`
+    ).join('');
+  }, 300);
+});
+
+function selectMember(email, name) {
+  input.value = email;
+  results.innerHTML = '';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.checkin-panel')) results.innerHTML = '';
+});
+</script>
+{% endblock %}
